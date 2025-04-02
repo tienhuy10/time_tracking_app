@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Xem Chấm Công</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .attendance-table {
+            overflow-x: auto;
+        }
+        .attendance-table th, .attendance-table td {
+            min-width: 150px;
+            white-space: nowrap;
+        }
+        .time-info {
+            font-size: 0.9em;
+        }
+        .reason-info {
+            color: #e74c3c;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Xem Chấm Công</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('admin_dashboard') }}">Trang chủ</a>
+            <a href="{{ url_for('admin_employees') }}">Nhân viên</a>
+            <a href="{{ url_for('admin_filter_month') }}">Lọc chấm công theo tháng</a>
+            <a href="{{ url_for('logout') }}">Đăng xuất</a>
+        </div>
+        
+        <form method="POST" class="search-form">
+            <label>Chọn tháng:</label>
+            <input type="month" name="month" value="{{ selected_month }}">
+            <button type="submit">Xem</button>
+            <button formaction="{{ url_for('admin_export') }}">Xuất Excel</button>
+        </form>
+        
+        <h2>Bảng chấm công</h2>
+        <div class="attendance-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        {% for emp_id, full_name in employee_dict.items() %}
+                        <th>{{ full_name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for date in days_in_month %}
+                    <tr>
+                        <td>{{ date }}</td>
+                        {% for emp_id in employee_dict.keys() %}
+                        <td>
+                            {% if attendance_data[emp_id]['days'][date] is defined %}
+                            <span class="time-info">
+                                Vào sáng: {{ attendance_data[emp_id]['days'][date]['in_morning'] or '' }}<br>
+                                Ra sáng: {{ attendance_data[emp_id]['days'][date]['out_morning'] or '' }}<br>
+                                Vào chiều: {{ attendance_data[emp_id]['days'][date]['in_afternoon'] or '' }}<br>
+                                Ra chiều: {{ attendance_data[emp_id]['days'][date]['out_afternoon'] or '' }}
+                            </span>
+                            {% if attendance_data[emp_id]['days'][date]['reason'] %}
+                            <br><span class="reason-info">Lý do: {{ attendance_data[emp_id]['days'][date]['reason'] }}</span>
+                            {% endif %}
+                            {% else %}
+                            ✘
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                    <tr>
+                        <td><strong>Tổng ngày đi làm</strong></td>
+                        {% for emp_id in employee_dict.keys() %}
+                        <td>{{ attendance_data[emp_id]['total'] }}</td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

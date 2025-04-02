@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lọc Chấm Công Theo Tháng</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Lọc Chấm Công Theo Tháng</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('admin_dashboard') }}">Trang chủ</a>
+            <a href="{{ url_for('admin_employees') }}">Nhân viên</a>
+            <a href="{{ url_for('admin_attendance') }}">Xem chấm công</a>
+            <a href="{{ url_for('logout') }}">Đăng xuất</a>
+        </div>
+        
+        <form method="POST" class="form">
+            <label>Chọn nhân viên:</label>
+            <select name="user_id" required>
+                <option value="">-- Chọn nhân viên --</option>
+                {% for user in users %}
+                <option value="{{ user[0] }}">{{ user[2] }} ({{ user[1] }})</option>
+                {% endfor %}
+            </select>
+            <label>Chọn tháng:</label>
+            <input type="month" name="month" value="{{ selected_month }}" required>
+            <button type="submit">Lọc</button>
+        </form>
+
+        {% if daily_records %}
+        <h2>Chi tiết chấm công</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Họ tên</th>
+                    <th>Ngày</th>
+                    <th>Vào sáng</th>
+                    <th>Ra sáng</th>
+                    <th>Vào chiều</th>
+                    <th>Ra chiều</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for date, records in daily_records.items() %}
+                <tr>
+                    <td>{{ records.full_name }}</td>
+                    <td>{{ date }}</td>
+                    <td>
+                        {{ records.in_morning.time }}<br>
+                        {% if records.in_morning.reason %}
+                        <small class="reason">Lý do: {{ records.in_morning.reason }}</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ records.out_morning.time }}</td>
+                    <td>
+                        {{ records.in_afternoon.time }}<br>
+                        {% if records.in_afternoon.reason %}
+                        <small class="reason">Lý do: {{ records.in_afternoon.reason }}</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ records.out_afternoon.time }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Thống kê</h2>
+        <p>Tổng ngày đi làm đúng giờ: {{ stats.on_time }}</p>
+        <p>Tổng ngày đi làm muộn: {{ stats.late }}</p>
+        <p>Tổng ngày nghỉ: {{ stats.absent }}</p>
+        {% if stats.reasons %}
+        <h3>Lý do nghỉ/muộn:</h3>
+        <ul>
+            {% for reason in stats.reasons %}
+            <li>{{ reason }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endif %}
+    </div>
+</body>
+</html>

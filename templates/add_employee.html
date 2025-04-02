@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Thêm Nhân viên</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Thêm Nhân viên Mới</h1>
+        <form method="POST" class="form">
+            <label>Tên đăng nhập:</label>
+            <input type="text" name="username" required>
+            <label>Mật khẩu:</label>
+            <input type="password" name="password" required>
+            <label>Họ tên:</label>
+            <input type="text" name="full_name" required>
+            <label>Số điện thoại:</label>
+            <input type="text" name="phone" required>
+            <label>Email:</label>
+            <input type="email" name="email" required>
+            <button type="submit">Thêm</button>
+        </form>
+        <a href="{{ url_for('admin_dashboard') }}" class="back-link">Quay lại</a>
+    </div>
+</body>
+</html>

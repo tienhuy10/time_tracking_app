@@ -1,0 +1,6 @@
+flask
+flask-login
+sqlite3
+opencv-python
+openpyxl
+Pillow

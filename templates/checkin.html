@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chấm công</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Chấm công</h1>
+        <form method="POST" id="checkinForm" class="form">
+            <label>Loại chấm công hiện tại:</label>
+            <p>
+                {% if next_checkin_type == 'in_morning' %}
+                Vào buổi sáng
+                {% elif next_checkin_type == 'out_morning' %}
+                Ra buổi sáng
+                {% elif next_checkin_type == 'in_afternoon' %}
+                Vào buổi chiều
+                {% elif next_checkin_type == 'out_afternoon' %}
+                Ra buổi chiều
+                {% else %}
+                Bạn đã chấm công đủ hôm nay!
+                {% endif %}
+            </p>
+            {% if next_checkin_type %}
+            <label>Lý do đi muộn (nếu có):</label>
+            <textarea name="reason" rows="3"></textarea>
+            <input type="hidden" name="photo" id="photoInput">
+            <div class="button-group">
+                <button type="button" onclick="capturePhoto()">Chụp ảnh</button>
+                <button type="submit">Xác nhận</button>
+            </div>
+            {% endif %}
+        </form>
+        <video id="video" width="640" height="480" autoplay></video>
+        <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+        <a href="{{ url_for('employee_dashboard') }}" class="back-link">Quay lại</a>
+    </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

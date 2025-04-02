@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sửa Nhân viên</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Sửa Thông tin Nhân viên</h1>
+        <form method="POST" class="form">
+            <label>Tên đăng nhập:</label>
+            <input type="text" name="username" value="{{ user[0] }}" required>
+            <label>Họ tên:</label>
+            <input type="text" name="full_name" value="{{ user[1] }}" required>
+            <label>Số điện thoại:</label>
+            <input type="text" name="phone" value="{{ user[2] }}" required>
+            <label>Email:</label>
+            <input type="email" name="email" value="{{ user[3] }}" required>
+            <button type="submit">Cập nhật</button>
+        </form>
+        <a href="{{ url_for('admin_dashboard') }}" class="back-link">Quay lại</a>
+    </div>
+</body>
+</html>

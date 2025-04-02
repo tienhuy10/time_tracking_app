@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trang Chủ - Công ty ABC</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="home-container">
+        <div class="intro">
+            <h1>HỆ THỐNG CHẤM CÔNG</h1>
+            <p>
+                TRUNG TÂM CÔNG NGHỆ TIPYSTEM
+            </p>
+        </div>
+        <div class="clock">
+            <h2 id="current-time"></h2>
+        </div>
+        <div class="login-btn">
+            <a href="{{ url_for('login') }}" class="button">Đăng nhập</a>
+        </div>
+    </div>
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const options = { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                hour12: false 
+            };
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('vi-VN', options);
+        }
+        setInterval(updateTime, 1000); // Cập nhật mỗi giây
+        updateTime(); // Gọi lần đầu để hiển thị ngay
+    </script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lọc Chấm Công</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Lọc Chấm Công Theo Nhân Viên</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('admin_dashboard') }}" class="back-link">Quay lại</a>
+        </div>
+        
+        <form method="POST" class="form">
+            <label>Chọn nhân viên:</label>
+            <select name="user_id" required>
+                <option value="">-- Chọn nhân viên --</option>
+                {% for user in users %}
+                <option value="{{ user[0] }}">{{ user[2] }} ({{ user[1] }})</option>
+                {% endfor %}
+            </select>
+            <label>Từ ngày:</label>
+            <input type="date" name="start_date" required>
+            <label>Đến ngày:</label>
+            <input type="date" name="end_date" required>
+            <button type="submit">Lọc</button>
+        </form>
+
+        {% if daily_records %}
+        <h2>Bảng chấm công</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Họ tên</th>
+                    <th>Ngày</th>
+                    <th>Vào sáng</th>
+                    <th>Ra sáng</th>
+                    <th>Vào chiều</th>
+                    <th>Ra chiều</th>
+                    <th>Tổng thời gian làm</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for date, records in daily_records.items() %}
+                <tr>
+                    <td>{{ records.full_name }}</td>
+                    <td>{{ date }}</td>
+                    <td>
+                        {{ records.in_morning.time }}<br>
+                        {% if records.in_morning.photo %}
+                        <img src="{{ url_for('static', filename=records.in_morning.photo[7:]) }}" alt="Photo" class="photo">
+                        {% endif %}
+                        {% if records.in_morning.reason %}
+                        <small class="reason">Lý do: {{ records.in_morning.reason }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ records.out_morning.time }}<br>
+                        {% if records.out_morning.photo %}
+                        <img src="{{ url_for('static', filename=records.out_morning.photo[7:]) }}" alt="Photo" class="photo">
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ records.in_afternoon.time }}<br>
+                        {% if records.in_afternoon.photo %}
+                        <img src="{{ url_for('static', filename=records.in_afternoon.photo[7:]) }}" alt="Photo" class="photo">
+                        {% endif %}
+                        {% if records.in_afternoon.reason %}
+                        <small class="reason">Lý do: {{ records.in_afternoon.reason }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ records.out_afternoon.time }}<br>
+                        {% if records.out_afternoon.photo %}
+                        <img src="{{ url_for('static', filename=records.out_afternoon.photo[7:]) }}" alt="Photo" class="photo">
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ records.total_time.hours }} giờ 
+                        {{ records.total_time.minutes }} phút 
+                        {{ records.total_time.seconds }} giây
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Thống kê</h2>
+        <p>Tổng ngày đi làm đúng giờ: {{ stats.on_time }}</p>
+        <p>Tổng ngày đi làm đủ giờ (≥ 8 giờ): {{ stats.full_time }}</p>
+        <p>Tổng ngày đi làm muộn: {{ stats.late }}</p>
+        {% endif %}
+    </div>
+</body>
+</html>
