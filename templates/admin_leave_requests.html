@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản Lý Nhân Viên</title>
+    <title>Duyệt Đơn Xin Nghỉ</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -14,42 +14,46 @@
             </div>
             <div class="nav-links">
                 <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('admin_employees') }}">Quản Lý Nhân Viên</a>
                 <a href="{{ url_for('admin_attendance') }}">Xem Chấm Công</a>
-                <a href="{{ url_for('admin_leave_requests') }}">Duyệt Đơn Nghỉ</a>
                 <a href="{{ url_for('admin_reports') }}">Xem Báo Cáo</a>
                 <a href="{{ url_for('admin_edit_attendance') }}">Chỉnh Sửa Chấm Công</a>
-                <a href="{{ url_for('add_employee') }}">Thêm Nhân Viên</a>
                 <a href="{{ url_for('logout') }}">Đăng Xuất</a>
             </div>
         </div>
     </header>
     <main>
         <div class="section">
-            <h1>Quản Lý Nhân Viên</h1>
+            <h1>Duyệt Đơn Xin Nghỉ</h1>
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Tên Đăng Nhập</th>
-                        <th>Họ Tên</th>
-                        <th>Số Điện Thoại</th>
-                        <th>Email</th>
-                        <th>Vai Trò</th>
+                        <th>Nhân Viên</th>
+                        <th>Ngày Gửi</th>
+                        <th>Ngày Nghỉ</th>
+                        <th>Loại Nghỉ</th>
+                        <th>Lý Do</th>
+                        <th>Trạng Thái</th>
                         <th>Hành Động</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for user in users %}
+                    {% for req in requests %}
                     <tr>
-                        <td>{{ user[0] }}</td>
-                        <td>{{ user[1] }}</td>
-                        <td>{{ user[2] }}</td>
-                        <td>{{ user[3] }}</td>
-                        <td>{{ user[4] }}</td>
-                        <td>{{ user[5] }}</td>
+                        <td>{{ req[1] }}</td>
+                        <td>{{ req[2] }}</td>
+                        <td>{{ req[3] }}</td>
+                        <td>{{ req[4] }}</td>
+                        <td>{{ req[5] }}</td>
+                        <td>{{ req[6] }}</td>
                         <td class="action-buttons">
-                            <a href="{{ url_for('edit_employee', user_id=user[0]) }}" class="attachment">Sửa</a>
-                            <a href="{{ url_for('delete_employee', user_id=user[0]) }}" class="attachment" onclick="return confirm('Bạn có chắc chắn muốn xóa?');">Xóa</a>
+                            {% if req[6] == 'Chờ duyệt' %}
+                            <form method="POST" style="display:inline;">
+                                <input type="hidden" name="request_id" value="{{ req[0] }}">
+                                <button type="submit" name="action" value="approve" class="approve">Duyệt</button>
+                                <button type="submit" name="action" value="reject" class="reject">Từ Chối</button>
+                            </form>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

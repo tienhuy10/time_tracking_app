@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh Sửa Chấm Công</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="{{ url_for('admin_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('admin_employees') }}">Quản Lý Nhân Viên</a>
+                <a href="{{ url_for('admin_attendance') }}">Xem Chấm Công</a>
+                <a href="{{ url_for('admin_leave_requests') }}">Duyệt Đơn Nghỉ</a>
+                <a href="{{ url_for('admin_reports') }}">Xem Báo Cáo</a>
+                <a href="{{ url_for('logout') }}">Đăng Xuất</a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="section">
+            <h1>Chỉnh Sửa Chấm Công</h1>
+            <form method="POST" class="form" enctype="multipart/form-data">
+                <label>Nhân Viên:</label>
+                <select name="user_id" required>
+                    {% for emp in employees %}
+                    <option value="{{ emp[0] }}">{{ emp[1] }}</option>
+                    {% endfor %}
+                </select>
+                <label>Ngày:</label>
+                <input type="date" name="date" required>
+                <label>Loại Chấm Công:</label>
+                <select name="check_type" required>
+                    <option value="in_morning">Vào Sáng</option>
+                    <option value="out_morning">Ra Sáng</option>
+                    <option value="in_afternoon">Vào Chiều</option>
+                    <option value="out_afternoon">Ra Chiều</option>
+                </select>
+                <label>Thời Gian:</label>
+                <input type="time" name="time" required>
+                <label>Ảnh (Nếu Có):</label>
+                <input type="file" name="photo">
+                <label>Lý Do (Nếu Có):</label>
+                <textarea name="reason" placeholder="Nhập lý do (nếu cần)"></textarea>
+                <button type="submit">Cập Nhật</button>
+            </form>
+        </div>
+        <div class="section">
+            <h2>Danh Sách Chấm Công</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nhân Viên</th>
+                        <th>Ngày Giờ</th>
+                        <th>Loại</th>
+                        <th>Ảnh</th>
+                        <th>Lý Do</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ record[0] }}</td>
+                        <td>{{ record[1] }}</td>
+                        <td>{{ record[2] }}</td>
+                        <td>{% if record[3] %}<img src="{{ url_for('static', filename=record[3][7:]) }}" alt="Photo" class="photo">{% else %}Không có{% endif %}</td>
+                        <td>{{ record[4] or '' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>

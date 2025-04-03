@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Xem Báo Cáo Công Việc</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -13,10 +13,10 @@
                 <a href="{{ url_for('admin_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a>
             </div>
             <div class="nav-links">
+                <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
                 <a href="{{ url_for('admin_employees') }}">Quản Lý Nhân Viên</a>
                 <a href="{{ url_for('admin_attendance') }}">Xem Chấm Công</a>
                 <a href="{{ url_for('admin_leave_requests') }}">Duyệt Đơn Nghỉ</a>
-                <a href="{{ url_for('admin_reports') }}">Xem Báo Cáo</a>
                 <a href="{{ url_for('admin_edit_attendance') }}">Chỉnh Sửa Chấm Công</a>
                 <a href="{{ url_for('logout') }}">Đăng Xuất</a>
             </div>
@@ -24,31 +24,24 @@
     </header>
     <main>
         <div class="section">
-            <h1>Admin Dashboard</h1>
-            <h2>Chấm Công 7 Ngày Gần Đây</h2>
+            <h1>Xem Báo Cáo Công Việc</h1>
             <table>
                 <thead>
                     <tr>
                         <th>Nhân Viên</th>
-                        <th>Ngày</th>
-                        <th>Vào Sáng</th>
-                        <th>Ra Sáng</th>
-                        <th>Vào Chiều</th>
-                        <th>Ra Chiều</th>
+                        <th>Ngày Gửi</th>
+                        <th>Nội Dung</th>
+                        <th>Đính Kèm</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for username, data in daily_records.items() %}
-                    {% for date, records in data.days.items() %}
+                    {% for report in reports %}
                     <tr>
-                        <td>{{ data.full_name }}</td>
-                        <td>{{ date }}</td>
-                        <td>{{ records.in_morning }}<br>{% if records.photo %}<img src="{{ url_for('static', filename=records.photo[7:]) }}" alt="Photo" class="photo">{% endif %}</td>
-                        <td>{{ records.out_morning }}</td>
-                        <td>{{ records.in_afternoon }}</td>
-                        <td>{{ records.out_afternoon }}</td>
+                        <td>{{ report[1] }}</td>
+                        <td>{{ report[2] }}</td>
+                        <td>{{ report[3] }}</td>
+                        <td>{% if report[4] %}<a href="{{ url_for('static', filename=report[4][7:]) }}" target="_blank" class="attachment">Xem</a>{% else %}Không có{% endif %}</td>
                     </tr>
-                    {% endfor %}
                     {% endfor %}
                 </tbody>
             </table>

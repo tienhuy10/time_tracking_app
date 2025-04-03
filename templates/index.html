@@ -1,37 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trang Chủ - Công ty ABC</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        main {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); /* Gradient đẹp hơn */
+            color: #fff;
+        }
+        .intro h1 { 
+            font-size: 2.5em; 
+            font-weight: 700; 
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Bóng chữ nổi bật */
+        }
+        .intro p { 
+            font-size: 1.3em; 
+            margin: 10px 0 30px; 
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2); 
+        }
+        .clock h2 { 
+            font-size: 4em; 
+            font-weight: 600; 
+            color: #f0f0f0; /* Màu sáng nổi bật */
+            background: rgba(255, 255, 255, 0.15); /* Nền mờ đẹp hơn */
+            padding: 20px 40px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); 
+            letter-spacing: 2px; 
+        }
+    </style>
 </head>
 <body>
-    <div class="home-container">
+    <header>
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="{{ url_for('index') }}">HỆ THỐNG CHẤM CÔNG</a>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('login') }}">Đăng Nhập</a>
+            </div>
+        </div>
+    </header>
+    <main>
         <div class="intro">
             <h1>HỆ THỐNG CHẤM CÔNG</h1>
-            <p>
-                TRUNG TÂM CÔNG NGHỆ TIPYSTEM
-            </p>
+            <p>TRUNG TÂM CÔNG NGHỆ TIPYSTEM</p>
         </div>
         <div class="clock">
             <h2 id="current-time"></h2>
         </div>
-        <div class="login-btn">
-            <a href="{{ url_for('login') }}" class="button">Đăng nhập</a>
-        </div>
-    </div>
+    </main>
     <script>
         function updateTime() {
             const now = new Date();
-            const options = { 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                second: '2-digit', 
-                hour12: false 
-            };
+            const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
             document.getElementById('current-time').textContent = now.toLocaleTimeString('vi-VN', options);
         }
-        setInterval(updateTime, 1000); // Cập nhật mỗi giây
-        updateTime(); // Gọi lần đầu để hiển thị ngay
+        setInterval(updateTime, 1000);
+        updateTime();
     </script>
 </body>
 </html>

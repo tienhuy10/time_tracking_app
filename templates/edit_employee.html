@@ -1,24 +1,43 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <title>Sửa Nhân viên</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sửa Thông Tin Nhân Viên</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>Sửa Thông tin Nhân viên</h1>
-        <form method="POST" class="form">
-            <label>Tên đăng nhập:</label>
-            <input type="text" name="username" value="{{ user[0] }}" required>
-            <label>Họ tên:</label>
-            <input type="text" name="full_name" value="{{ user[1] }}" required>
-            <label>Số điện thoại:</label>
-            <input type="text" name="phone" value="{{ user[2] }}" required>
-            <label>Email:</label>
-            <input type="email" name="email" value="{{ user[3] }}" required>
-            <button type="submit">Cập nhật</button>
-        </form>
-        <a href="{{ url_for('admin_dashboard') }}" class="back-link">Quay lại</a>
-    </div>
+    <header>
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="{{ url_for('admin_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('admin_employees') }}">Quản Lý Nhân Viên</a>
+                <a href="{{ url_for('admin_attendance') }}">Xem Chấm Công</a>
+                <a href="{{ url_for('admin_leave_requests') }}">Duyệt Đơn Nghỉ</a>
+                <a href="{{ url_for('admin_reports') }}">Xem Báo Cáo</a>
+                <a href="{{ url_for('admin_edit_attendance') }}">Chỉnh Sửa Chấm Công</a>
+                <a href="{{ url_for('logout') }}">Đăng Xuất</a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="section">
+            <h1>Sửa Thông Tin Nhân Viên</h1>
+            <form method="POST" class="form">
+                <label>Tên Đăng Nhập:</label>
+                <input type="text" name="username" value="{{ user[0] }}" required>
+                <label>Họ Tên:</label>
+                <input type="text" name="full_name" value="{{ user[1] }}" required>
+                <label>Số Điện Thoại:</label>
+                <input type="text" name="phone" value="{{ user[2] }}">
+                <label>Email:</label>
+                <input type="email" name="email" value="{{ user[3] }}">
+                <button type="submit">Cập Nhật</button>
+            </form>
+        </div>
+    </main>
 </body>
 </html>

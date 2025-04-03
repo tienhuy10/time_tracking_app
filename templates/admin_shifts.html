@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quản Lý Ca Làm Việc</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Quản Lý Ca Làm Việc</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('admin_dashboard') }}">Trang chủ</a>
+            <a href="{{ url_for('admin_employees') }}">Nhân viên</a>
+            <a href="{{ url_for('admin_attendance') }}">Xem chấm công</a>
+            <a href="{{ url_for('admin_leave_requests') }}">Duyệt đơn nghỉ</a>
+            <a href="{{ url_for('logout') }}">Đăng xuất</a>
+        </div>
+        
+        <form method="POST" class="form">
+            <label>Nhân viên:</label>
+            <select name="user_id" required>
+                {% for user in users %}
+                <option value="{{ user[0] }}">{{ user[2] }} ({{ user[1] }})</option>
+                {% endfor %}
+            </select>
+            <label>Ngày làm việc:</label>
+            <input type="date" name="shift_date" required>
+            <label>Vào sáng:</label>
+            <input type="time" name="morning_start" value="08:00" required>
+            <label>Ra sáng:</label>
+            <input type="time" name="morning_end" value="12:00" required>
+            <label>Vào chiều:</label>
+            <input type="time" name="afternoon_start" value="13:00" required>
+            <label>Ra chiều:</label>
+            <input type="time" name="afternoon_end" value="17:00" required>
+            <button type="submit">Thêm/Chỉnh sửa</button>
+        </form>
+        
+        <h2>Danh sách ca làm việc</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nhân viên</th>
+                    <th>Ngày</th>
+                    <th>Vào sáng</th>
+                    <th>Ra sáng</th>
+                    <th>Vào chiều</th>
+                    <th>Ra chiều</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for shift in shifts %}
+                <tr>
+                    <td>{{ shift[1] }}</td>
+                    <td>{{ shift[2] }}</td>
+                    <td>{{ shift[3] }}</td>
+                    <td>{{ shift[4] }}</td>
+                    <td>{{ shift[5] }}</td>
+                    <td>{{ shift[6] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

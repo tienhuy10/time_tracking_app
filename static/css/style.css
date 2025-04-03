@@ -6,257 +6,267 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f7fa;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f0f2f5;
     color: #333;
     line-height: 1.6;
 }
 
-.container {
-    max-width: 1200px;
+/* Header cố định */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #1e3a8a;
+    padding: 15px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+.nav-container {
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 20px;
-}
-
-/* Trang chủ */
-.home-container {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    text-align: center;
-    background: linear-gradient(135deg, #3498db, #2980b9);
-    color: white;
+    padding: 0 20px;
+}
+
+.nav-brand a {
+    color: #fff;
+    font-size: 1.5em;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    gap: 15px;
+}
+
+.nav-links a {
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 20px;
+    font-weight: 500;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.nav-links a:hover {
+    background-color: #3b82f6;
+    transform: translateY(-2px);
+}
+
+/* Nội dung chính */
+main {
+    max-width: 1400px;
+    margin: 80px auto 40px auto; /* Cách header */
     padding: 20px;
 }
 
-.intro {
-    margin-bottom: 40px;
-}
-
-.intro h1 {
-    font-size: 2.5em;
-    margin-bottom: 20px;
-}
-
-.intro p {
-    font-size: 1.2em;
-    max-width: 800px;
-}
-
-.clock h2 {
-    font-size: 4em;
-    font-weight: 700;
-    background-color: rgba(255, 255, 255, 0.2);
-    padding: 20px 40px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-.login-btn {
-    margin-top: 40px;
-}
-
-.button {
-    display: inline-block;
-    padding: 15px 30px;
-    background-color: #2ecc71;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 1.2em;
-    transition: background-color 0.3s;
-}
-
-.button:hover {
-    background-color: #27ae60;
+.section {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
 }
 
 /* Tiêu đề */
-h1, h2 {
-    color: #2c3e50;
+h1 {
+    color: #1e3a8a;
+    font-size: 2em;
     margin-bottom: 20px;
     font-weight: 600;
 }
 
-h1 {
-    font-size: 2em;
-    text-align: center;
-}
-
 h2 {
+    color: #1e3a8a;
     font-size: 1.5em;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 5px;
+    margin-bottom: 15px;
+    font-weight: 500;
 }
 
-/* Liên kết điều hướng */
-.nav-links {
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.nav-links a {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #3498db;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    margin: 0 10px;
-    transition: background-color 0.3s;
-}
-
-.nav-links a:hover {
-    background-color: #2980b9;
-}
-
-/* Form chung */
+/* Form */
 .form {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    max-width: 500px;
-    margin: 0 auto 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .form label {
-    display: block;
-    margin-bottom: 5px;
     font-weight: 500;
-    color: #2c3e50;
+    color: #555;
 }
 
 .form input, .form select, .form textarea {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
+    padding: 12px;
+    border: 2px solid #ddd;
     border-radius: 5px;
     font-size: 1em;
+    width: 100%;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form input:focus, .form select:focus, .form textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+    outline: none;
 }
 
 .form textarea {
+    height: 120px;
     resize: vertical;
 }
 
-.button-group {
-    display: flex;
-    gap: 10px;
-}
-
-button {
-    padding: 10px 20px;
-    background-color: #2ecc71;
-    color: white;
+.form button {
+    padding: 12px 20px;
+    background-color: #10b981;
+    color: #fff;
     border: none;
     border-radius: 5px;
+    font-size: 1.1em;
+    font-weight: 600;
     cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
 }
 
-button:hover {
-    background-color: #27ae60;
-}
-
-/* Form tìm kiếm */
-.search-form {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    max-width: 400px;
-    margin-bottom: 20px;
-}
-
-.search-form input[type="month"] {
-    flex: 1;
+.form button:hover {
+    background-color: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* Bảng */
 table {
     width: 100%;
     border-collapse: collapse;
-    background-color: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
 }
 
 th, td {
-    padding: 15px;
+    padding: 12px;
     text-align: center;
     border-bottom: 1px solid #eee;
 }
 
 th {
-    background-color: #3498db;
-    color: white;
+    background-color: #1e3a8a;
+    color: #fff;
     font-weight: 600;
 }
 
-td {
+tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+tr:hover {
+    background-color: #e5e7eb;
+}
+
+.photo {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
     vertical-align: middle;
 }
 
-tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-tbody tr:hover {
-    background-color: #f1f1f1;
-}
-
-/* Ảnh trong bảng */
-.photo {
-    max-width: 100px;
-    border-radius: 5px;
-    margin: 5px;
-}
-
-/* Lý do đi muộn */
 .reason {
-    display: block;
-    color: #e74c3c;
+    color: #ef4444;
     font-size: 0.9em;
+    display: block;
     margin-top: 5px;
 }
 
-/* Liên kết quay lại */
-.back-link {
-    display: inline-block;
-    margin-top: 10px;
-    color: #3498db;
+.attachment {
+    color: #3b82f6;
     text-decoration: none;
 }
 
-.back-link:hover {
+.attachment:hover {
     text-decoration: underline;
 }
 
-/* Liên kết hành động */
-.action-link {
-    padding: 5px 10px;
+/* Nút hành động trong bảng */
+.action-buttons form {
+    display: inline;
+}
+
+.action-buttons button {
+    padding: 8px 15px;
     margin: 0 5px;
-    text-decoration: none;
+    border: none;
     border-radius: 5px;
-    color: white;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
 }
 
-.action-link:not(.delete) {
-    background-color: #3498db;
+.action-buttons button.approve {
+    background-color: #10b981;
+    color: #fff;
 }
 
-.action-link:not(.delete):hover {
-    background-color: #2980b9;
+.action-buttons button.approve:hover {
+    background-color: #059669;
+    transform: translateY(-2px);
 }
 
-.action-link.delete {
-    background-color: #e74c3c;
+.action-buttons button.reject {
+    background-color: #ef4444;
+    color: #fff;
 }
 
-.action-link.delete:hover {
-    background-color: #c0392b;
+.action-buttons button.reject:hover {
+    background-color: #dc2626;
+    transform: translateY(-2px);
+}
+
+/* Đặc biệt cho chấm công */
+.checkin-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+#video {
+    width: 100%;
+    max-width: 400px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+#canvas {
+    display: none;
+}
+
+.approved { color: #10b981; font-weight: 600; }
+.rejected { color: #ef4444; font-weight: 600; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .nav-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    main {
+        margin-top: 120px;
+        padding: 10px;
+    }
+    .form {
+        max-width: 100%;
+    }
+    table {
+        font-size: 0.9em;
+    }
 }

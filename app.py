@@ -3,11 +3,14 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 import sqlite3
 import os
 from datetime import datetime, timedelta
-from calendar import monthrange  # Thêm import này
+from calendar import monthrange
 from openpyxl import Workbook
 import base64
 from io import BytesIO
 from PIL import Image
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
@@ -17,6 +20,8 @@ login_manager.login_view = 'login'
 
 if not os.path.exists('static/photos'):
     os.makedirs('static/photos')
+if not os.path.exists('static/reports'):
+    os.makedirs('static/reports')
 
 def init_db():
     conn = sqlite3.connect('database.db')
@@ -39,8 +44,26 @@ def init_db():
         reason TEXT DEFAULT '',
         FOREIGN KEY (user_id) REFERENCES users(id)
     )''')
-    c.execute("INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)", 
-              ('admin', 'admin123', 'admin'))
+    c.execute('''CREATE TABLE IF NOT EXISTS leave_requests (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        request_date TEXT,
+        leave_date TEXT,
+        leave_type TEXT,  -- Thêm cột leave_type
+        reason TEXT,
+        status TEXT DEFAULT 'Chờ duyệt',
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )''')
+    c.execute('''CREATE TABLE IF NOT EXISTS work_reports (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        report_date TEXT,
+        content TEXT,
+        attachment_path TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )''')
+    c.execute("INSERT OR IGNORE INTO users (username, password, role, email) VALUES (?, ?, ?, ?)", 
+              ('admin', 'admin123', 'admin', 'admin@example.com'))
     conn.commit()
     conn.close()
 
@@ -60,6 +83,23 @@ def load_user(user_id):
     if user:
         return User(user[0])
     return None
+
+def send_email(to_email, subject, body):
+    from_email = "2002.tihy@gmail.com"
+    password = "hcts yipw kngs ptgj"
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(from_email, password)
+        server.send_message(msg)
+        server.quit()
+    except Exception as e:
+        print(f"Error sending email: {e}")
 
 @app.route('/')
 def index():
@@ -95,18 +135,50 @@ def employee_dashboard():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
     
-    search_type = request.form.get('search_type', '')
-    query = "SELECT timestamp, type, photo_path, reason FROM time_records WHERE user_id = ?"
-    params = [current_user.id]
+    # Xử lý lọc
+    filter_type = request.form.get('filter_type', 'week')  # Mặc định là tuần
+    selected_month = request.form.get('selected_month', datetime.now().strftime('%Y-%m'))
     
-    if search_type:
-        query += " AND type = ?"
-        params.append(search_type)
+    if filter_type == 'week':
+        start_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+        query = "SELECT timestamp, type, photo_path, reason FROM time_records WHERE user_id = ? AND timestamp >= ? ORDER BY timestamp DESC"
+        c.execute(query, (current_user.id, f'{start_date} 00:00:00'))
+    elif filter_type == 'month':
+        query = "SELECT timestamp, type, photo_path, reason FROM time_records WHERE user_id = ? AND timestamp LIKE ? ORDER BY timestamp DESC"
+        c.execute(query, (current_user.id, f'{selected_month}%'))
     
-    c.execute(query, params)
     records = c.fetchall()
+    
+    # Lấy danh sách ngày nghỉ đã duyệt
+    if filter_type == 'week':
+        c.execute("SELECT leave_date, leave_type FROM leave_requests WHERE user_id = ? AND status = 'Đã duyệt' AND request_date >= ? ORDER BY request_date DESC",
+                  (current_user.id, f'{start_date} 00:00:00'))
+    else:
+        c.execute("SELECT leave_date, leave_type FROM leave_requests WHERE user_id = ? AND status = 'Đã duyệt' AND request_date LIKE ? ORDER BY request_date DESC",
+                  (current_user.id, f'{selected_month}%'))
+    leave_records = c.fetchall()
+    
+    # Lấy danh sách báo cáo công việc
+    if filter_type == 'week':
+        c.execute("SELECT report_date, content, attachment_path FROM work_reports WHERE user_id = ? AND report_date >= ? ORDER BY report_date DESC LIMIT 7",
+                  (current_user.id, f'{start_date} 00:00:00'))
+    else:
+        c.execute("SELECT report_date, content, attachment_path FROM work_reports WHERE user_id = ? AND report_date LIKE ? ORDER BY report_date DESC LIMIT 7",
+                  (current_user.id, f'{selected_month}%'))
+    reports = c.fetchall()
+    
+    # Lấy danh sách đơn xin nghỉ
+    if filter_type == 'week':
+        c.execute("SELECT request_date, leave_date, leave_type, reason, status FROM leave_requests WHERE user_id = ? AND request_date >= ? ORDER BY request_date DESC LIMIT 7",
+                  (current_user.id, f'{start_date} 00:00:00'))
+    else:
+        c.execute("SELECT request_date, leave_date, leave_type, reason, status FROM leave_requests WHERE user_id = ? AND request_date LIKE ? ORDER BY request_date DESC LIMIT 7",
+                  (current_user.id, f'{selected_month}%'))
+    leave_requests = c.fetchall()
+    
     conn.close()
 
+    # Xử lý dữ liệu chấm công
     daily_records = {}
     for record in records:
         timestamp = record[0]
@@ -118,32 +190,48 @@ def employee_dashboard():
         
         if date not in daily_records:
             daily_records[date] = {
-                'in_morning': {'time': '', 'photo': '', 'reason': ''},
-                'out_morning': {'time': '', 'photo': '', 'reason': ''},
-                'in_afternoon': {'time': '', 'photo': '', 'reason': ''},
-                'out_afternoon': {'time': '', 'photo': '', 'reason': ''},
-                'total_time': {'hours': 0, 'minutes': 0, 'seconds': 0}
+                'in_morning': {'time': '', 'photo': ''},
+                'out_morning': {'time': '', 'photo': ''},
+                'in_afternoon': {'time': '', 'photo': ''},
+                'out_afternoon': {'time': '', 'photo': ''},
+                'reason': reason,
+                'work_days': 0.0
             }
         
-        daily_records[date][record_type] = {'time': time_str, 'photo': photo_path, 'reason': reason}
+        daily_records[date][record_type] = {'time': time_str, 'photo': photo_path}
+    
+    # Tính công và thêm ngày nghỉ
+    for date, data in daily_records.items():
+        morning_complete = data['in_morning']['time'] and data['out_morning']['time']
+        afternoon_complete = data['in_afternoon']['time'] and data['out_afternoon']['time']
+        if morning_complete and afternoon_complete:
+            data['work_days'] = 1.0
+        elif morning_complete or afternoon_complete:
+            data['work_days'] = 0.5
+    
+    for leave_date, leave_type in leave_records:
+        if leave_date not in daily_records:
+            daily_records[leave_date] = {
+                'in_morning': {'time': '', 'photo': ''},
+                'out_morning': {'time': '', 'photo': ''},
+                'in_afternoon': {'time': '', 'photo': ''},
+                'out_afternoon': {'time': '', 'photo': ''},
+                'reason': 'Nghỉ',
+                'work_days': 0.0
+            }
+        if leave_type == 'Cả ngày':
+            daily_records[leave_date]['reason'] = 'Nghỉ cả ngày'
+        elif leave_type == 'Sáng':
+            daily_records[leave_date]['reason'] = 'Nghỉ sáng'
+        elif leave_type == 'Chiều':
+            daily_records[leave_date]['reason'] = 'Nghỉ chiều'
 
-    for date, records in daily_records.items():
-        total_seconds = 0
-        if records['in_morning']['time'] and records['out_morning']['time']:
-            in_morning = datetime.strptime(records['in_morning']['time'], '%H:%M:%S')
-            out_morning = datetime.strptime(records['out_morning']['time'], '%H:%M:%S')
-            total_seconds += (out_morning - in_morning).seconds
-        if records['in_afternoon']['time'] and records['out_afternoon']['time']:
-            in_afternoon = datetime.strptime(records['in_afternoon']['time'], '%H:%M:%S')
-            out_afternoon = datetime.strptime(records['out_afternoon']['time'], '%H:%M:%S')
-            total_seconds += (out_afternoon - in_afternoon).seconds
-        
-        hours = total_seconds // 3600
-        minutes = (total_seconds % 3600) // 60
-        seconds = total_seconds % 60
-        daily_records[date]['total_time'] = {'hours': hours, 'minutes': minutes, 'seconds': seconds}
-
-    return render_template('employee_dashboard.html', daily_records=daily_records)
+    return render_template('employee_dashboard.html', 
+                           daily_records=daily_records, 
+                           filter_type=filter_type, 
+                           selected_month=selected_month,
+                           reports=reports,
+                           leave_requests=leave_requests)
 
 @app.route('/checkin', methods=['GET', 'POST'])
 @login_required
@@ -152,45 +240,137 @@ def checkin():
     c = conn.cursor()
     today = datetime.now().strftime('%Y-%m-%d')
     
+    # Lấy danh sách chấm công trong ngày
     c.execute("SELECT type FROM time_records WHERE user_id = ? AND timestamp LIKE ?", 
               (current_user.id, f'{today}%'))
-    records = c.fetchall()
-    checkin_types = [r[0] for r in records]
+    records = [r[0] for r in c.fetchall()]
     
     current_hour = datetime.now().hour
     is_morning = current_hour < 12
+    check_type = None
+    status_message = ""
     
-    next_checkin_type = None
+    # Xác định trạng thái chấm công
     if is_morning:
-        if 'in_morning' not in checkin_types:
-            next_checkin_type = 'in_morning'
-        elif 'out_morning' not in checkin_types:
-            next_checkin_type = 'out_morning'
+        if 'in_morning' not in records:
+            check_type = 'in_morning'
+            status_message = "Bạn đang chấm công vào sáng."
+        elif 'out_morning' not in records:
+            check_type = 'out_morning'
+            status_message = "Bạn đang chấm công ra sáng."
+        else:
+            status_message = "Bạn đã chấm công đầy đủ buổi sáng."
     else:
-        if 'in_afternoon' not in checkin_types:
-            next_checkin_type = 'in_afternoon'
-        elif 'out_afternoon' not in checkin_types:
-            next_checkin_type = 'out_afternoon'
+        if 'in_afternoon' not in records:
+            check_type = 'in_afternoon'
+            status_message = "Bạn đang chấm công vào chiều."
+        elif 'out_afternoon' not in records:
+            check_type = 'out_afternoon'
+            status_message = "Bạn đang chấm công ra chiều."
+        else:
+            status_message = "Bạn đã chấm công đầy đủ buổi chiều."
 
-    if request.method == 'POST' and next_checkin_type:
+    if 'in_morning' in records and 'out_morning' in records and 'in_afternoon' in records and 'out_afternoon' in records:
+        status_message = "Bạn đã chấm công đầy đủ hôm nay."
+
+    if request.method == 'POST' and check_type:
         photo_data = request.form['photo']
         reason = request.form.get('reason', '')
-        
-        img_data = base64.b64decode(photo_data.split(',')[1])
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        photo_path = f'static/photos/{current_user.id}_{timestamp.replace(":", "-")}.jpg'
+        photo_path = None
         
-        with open(photo_path, 'wb') as f:
-            f.write(img_data)
+        if photo_data:  # Kiểm tra nếu có ảnh
+            try:
+                img_data = base64.b64decode(photo_data.split(',')[1])
+                photo_path = f'static/photos/{current_user.id}_{timestamp.replace(":", "-")}.jpg'
+                os.makedirs('static/photos', exist_ok=True)  # Tạo thư mục nếu chưa có
+                with open(photo_path, 'wb') as f:
+                    f.write(img_data)
+            except Exception as e:
+                print(f"Error saving photo: {e}")
+                photo_path = None
 
         c.execute("INSERT INTO time_records (user_id, timestamp, type, photo_path, reason) VALUES (?, ?, ?, ?, ?)",
-                  (current_user.id, timestamp, next_checkin_type, photo_path, reason))
+                  (current_user.id, timestamp, check_type, photo_path, reason))
         conn.commit()
         conn.close()
         return redirect(url_for('employee_dashboard'))
     
     conn.close()
-    return render_template('checkin.html', next_checkin_type=next_checkin_type)
+    return render_template('checkin.html', check_type=check_type, status_message=status_message)
+
+@app.route('/leave_request', methods=['GET', 'POST'])
+@login_required
+def leave_request():
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    
+    if request.method == 'POST':
+        leave_date = request.form['leave_date']
+        leave_type = request.form['leave_type']
+        reason = request.form['reason']
+        request_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        c.execute("INSERT INTO leave_requests (user_id, request_date, leave_date, leave_type, reason) VALUES (?, ?, ?, ?, ?)",
+                  (current_user.id, request_date, leave_date, leave_type, reason))
+        conn.commit()
+        
+        # Lấy tên nhân viên
+        c.execute("SELECT full_name FROM users WHERE id = ?", (current_user.id,))
+        full_name = c.fetchone()[0]
+        
+        # Gửi email cho admin
+        c.execute("SELECT email FROM users WHERE role = 'admin'")
+        admin_email = c.fetchone()[0]
+        send_email(admin_email, "Thông báo: Đơn xin nghỉ mới", 
+                   f"{full_name} đã gửi đơn xin nghỉ ngày {leave_date} ({leave_type}). Lý do: {reason}")
+        
+        conn.close()
+        return redirect(url_for('employee_dashboard'))
+    
+    c.execute("SELECT request_date, leave_date, leave_type, reason, status FROM leave_requests WHERE user_id = ?", 
+              (current_user.id,))
+    requests = c.fetchall()
+    conn.close()
+    return render_template('leave_request.html', requests=requests)
+
+@app.route('/work_report', methods=['GET', 'POST'])
+@login_required
+def work_report():
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    
+    if request.method == 'POST':
+        content = request.form['content']
+        attachment = request.files.get('attachment')
+        report_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        attachment_path = ''
+        
+        if attachment:
+            attachment_path = f'static/reports/{current_user.id}_{report_date.replace(":", "-")}_{attachment.filename}'
+            attachment.save(attachment_path)
+        
+        c.execute("INSERT INTO work_reports (user_id, report_date, content, attachment_path) VALUES (?, ?, ?, ?)",
+                  (current_user.id, report_date, content, attachment_path))
+        conn.commit()
+        
+        # Lấy tên nhân viên
+        c.execute("SELECT full_name FROM users WHERE id = ?", (current_user.id,))
+        full_name = c.fetchone()[0]
+        
+        # Gửi email cho admin
+        c.execute("SELECT email FROM users WHERE role = 'admin'")
+        admin_email = c.fetchone()[0]
+        send_email(admin_email, "Thông báo: Báo cáo công việc mới", 
+                   f"{full_name} đã gửi báo cáo ngày {report_date}. Nội dung: {content}")
+        
+        conn.close()
+        return redirect(url_for('employee_dashboard'))
+    
+    c.execute("SELECT report_date, content, attachment_path FROM work_reports WHERE user_id = ?", (current_user.id,))
+    reports = c.fetchall()
+    conn.close()
+    return render_template('work_report.html', reports=reports)
 
 @app.route('/admin')
 @login_required
@@ -222,32 +402,13 @@ def admin_dashboard():
             daily_records[username] = {'full_name': full_name, 'days': {}}
         if date not in daily_records[username]['days']:
             daily_records[username]['days'][date] = {
-                'in_morning': {'time': '', 'photo': '', 'reason': ''},
-                'out_morning': {'time': '', 'photo': '', 'reason': ''},
-                'in_afternoon': {'time': '', 'photo': '', 'reason': ''},
-                'out_afternoon': {'time': '', 'photo': '', 'reason': ''},
-                'total_time': {'hours': 0, 'minutes': 0, 'seconds': 0}
+                'in_morning': '', 'out_morning': '', 'in_afternoon': '', 'out_afternoon': '', 'photo': '', 'reason': ''
             }
         
-        daily_records[username]['days'][date][record_type] = {'time': time_str, 'photo': photo_path, 'reason': reason}
-
-    for username, data in daily_records.items():
-        for date, records in data['days'].items():
-            total_seconds = 0
-            if records['in_morning']['time'] and records['out_morning']['time']:
-                in_morning = datetime.strptime(records['in_morning']['time'], '%H:%M:%S')
-                out_morning = datetime.strptime(records['out_morning']['time'], '%H:%M:%S')
-                total_seconds += (out_morning - in_morning).seconds
-            if records['in_afternoon']['time'] and records['out_afternoon']['time']:
-                in_afternoon = datetime.strptime(records['in_afternoon']['time'], '%H:%M:%S')
-                out_afternoon = datetime.strptime(records['out_afternoon']['time'], '%H:%M:%S')
-                total_seconds += (out_afternoon - in_afternoon).seconds
-            
-            hours = total_seconds // 3600
-            minutes = (total_seconds % 3600) // 60
-            seconds = total_seconds % 60
-            daily_records[username]['days'][date]['total_time'] = {'hours': hours, 'minutes': minutes, 'seconds': seconds}
-
+        daily_records[username]['days'][date][record_type] = time_str
+        daily_records[username]['days'][date]['photo'] = photo_path
+        daily_records[username]['days'][date]['reason'] = reason
+    
     conn.close()
     return render_template('admin_dashboard.html', daily_records=daily_records)
 
@@ -272,27 +433,24 @@ def admin_attendance():
     c = conn.cursor()
     
     selected_month = request.form.get('month', datetime.now().strftime('%Y-%m'))
-    c.execute("SELECT u.id, u.full_name, t.timestamp, t.type, t.reason FROM users u LEFT JOIN time_records t ON u.id = t.user_id WHERE t.timestamp LIKE ? AND u.role = 'employee'",
+    c.execute("SELECT u.id, u.full_name, t.timestamp, t.type, t.photo_path, t.reason FROM users u LEFT JOIN time_records t ON u.id = t.user_id WHERE t.timestamp LIKE ? AND u.role = 'employee'",
               (f'{selected_month}%',))
     records = c.fetchall()
     
-    # Lấy danh sách nhân viên
     c.execute("SELECT id, full_name FROM users WHERE role = 'employee'")
     employees = c.fetchall()
     employee_dict = {emp[0]: emp[1] for emp in employees}
     
-    # Tạo danh sách ngày trong tháng
-    days_in_month = []
     year, month = map(int, selected_month.split('-'))
-    for day in range(1, 32):
-        try:
-            date = datetime(year, month, day).strftime('%Y-%m-%d')
-            days_in_month.append(date)
-        except ValueError:
-            break
+    _, days_in_month = monthrange(year, month)
+    days_in_month = [datetime(year, month, day).strftime('%Y-%m-%d') for day in range(1, days_in_month + 1)]
     
-    # Xử lý dữ liệu chấm công
-    attendance_data = {emp_id: {'days': {}, 'total': 0} for emp_id in employee_dict}
+    # Lấy ngày nghỉ đã duyệt
+    c.execute("SELECT user_id, leave_date, leave_type FROM leave_requests WHERE status = 'Đã duyệt' AND leave_date LIKE ?",
+              (f'{selected_month}%',))
+    leave_records = c.fetchall()
+    
+    attendance_data = {emp_id: {'days': {}, 'total': 0.0} for emp_id in employee_dict}
     for record in records:
         emp_id = record[0]
         timestamp = record[2]
@@ -301,19 +459,40 @@ def admin_attendance():
         date = timestamp.split(' ')[0]
         time_str = timestamp.split(' ')[1]
         record_type = record[3]
-        reason = record[4] or ''
+        photo_path = record[4]
+        reason = record[5] or ''
         
-        if emp_id not in attendance_data:
-            attendance_data[emp_id] = {'days': {}, 'total': 0}
         if date not in attendance_data[emp_id]['days']:
             attendance_data[emp_id]['days'][date] = {
-                'in_morning': '', 'out_morning': '', 'in_afternoon': '', 'out_afternoon': '', 'reason': ''
+                'in_morning': '', 'out_morning': '', 'in_afternoon': '', 'out_afternoon': '', 'photo': '', 'reason': ''
             }
         attendance_data[emp_id]['days'][date][record_type] = time_str
-        if record_type == 'in_morning' and time_str:  # Chỉ cần có vào sáng là tính ngày công
-            attendance_data[emp_id]['total'] += 1
-        if reason:
-            attendance_data[emp_id]['days'][date]['reason'] = reason
+        attendance_data[emp_id]['days'][date]['photo'] = photo_path
+        attendance_data[emp_id]['days'][date]['reason'] = reason
+    
+    # Tính công và thêm ngày nghỉ
+    for emp_id, data in attendance_data.items():
+        for date, day_data in data['days'].items():
+            morning_complete = day_data['in_morning'] and day_data['out_morning']
+            afternoon_complete = day_data['in_afternoon'] and day_data['out_afternoon']
+            if morning_complete and afternoon_complete:
+                attendance_data[emp_id]['total'] += 1.0
+            elif morning_complete or afternoon_complete:
+                attendance_data[emp_id]['total'] += 0.5
+    
+    for emp_id, leave_date, leave_type in leave_records:
+        if emp_id not in attendance_data:
+            attendance_data[emp_id] = {'days': {}, 'total': 0.0}
+        if leave_date not in attendance_data[emp_id]['days']:
+            attendance_data[emp_id]['days'][leave_date] = {
+                'in_morning': '', 'out_morning': '', 'in_afternoon': '', 'out_afternoon': '', 'photo': '', 'reason': ''
+            }
+        if leave_type == 'Cả ngày':
+            attendance_data[emp_id]['days'][leave_date]['reason'] = 'Nghỉ cả ngày'
+        elif leave_type == 'Sáng':
+            attendance_data[emp_id]['days'][leave_date]['reason'] = 'Nghỉ sáng'
+        elif leave_type == 'Chiều':
+            attendance_data[emp_id]['days'][leave_date]['reason'] = 'Nghỉ chiều'
     
     conn.close()
     return render_template('admin_attendance.html', attendance_data=attendance_data, employee_dict=employee_dict, days_in_month=days_in_month, selected_month=selected_month)
@@ -342,7 +521,6 @@ def admin_filter_month():
         daily_records = {}
         stats = {'on_time': 0, 'late': 0, 'absent': 0, 'reasons': []}
         
-        # Tính số ngày trong tháng
         year, month = map(int, selected_month.split('-'))
         _, days_in_month = monthrange(year, month)
         all_dates = set([datetime(year, month, day).strftime('%Y-%m-%d') for day in range(1, days_in_month + 1)])
@@ -384,7 +562,83 @@ def admin_filter_month():
         return render_template('admin_filter_month.html', daily_records=daily_records, stats=stats, users=users, selected_month=selected_month)
     
     conn.close()
-    return render_template('admin_filter_month.html', users=users, selected_month=default_month)  # Truyền default_month
+    return render_template('admin_filter_month.html', users=users, selected_month=default_month)
+
+@app.route('/admin/reports', methods=['GET'])
+@login_required
+def admin_reports():
+    if current_user.id != 1:
+        return "Access denied"
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    
+    c.execute("SELECT w.id, u.full_name, w.report_date, w.content, w.attachment_path FROM work_reports w JOIN users u ON w.user_id = u.id")
+    reports = c.fetchall()
+    conn.close()
+    return render_template('admin_reports.html', reports=reports)
+
+@app.route('/admin/leave_requests', methods=['GET', 'POST'])
+@login_required
+def admin_leave_requests():
+    if current_user.id != 1:
+        return "Access denied"
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    
+    if request.method == 'POST':
+        request_id = request.form['request_id']
+        action = request.form['action']
+        status = 'Đã duyệt' if action == 'approve' else 'Bị từ chối'
+        
+        c.execute("UPDATE leave_requests SET status = ? WHERE id = ?", (status, request_id))
+        conn.commit()
+        
+        c.execute("SELECT u.email, l.leave_date, l.leave_type, l.reason FROM leave_requests l JOIN users u ON l.user_id = u.id WHERE l.id = ?", 
+                  (request_id,))
+        emp_email, leave_date, leave_type, reason = c.fetchone()
+        send_email(emp_email, f"Thông báo: Đơn xin nghỉ ngày {leave_date}", 
+                   f"Đơn xin nghỉ của bạn ngày {leave_date} ({leave_type}) đã {status.lower()}. Lý do: {reason}")
+    
+    c.execute("SELECT l.id, u.full_name, l.request_date, l.leave_date, l.leave_type, l.reason, l.status FROM leave_requests l JOIN users u ON l.user_id = u.id")
+    requests = c.fetchall()
+    conn.close()
+    return render_template('admin_leave_requests.html', requests=requests)
+
+@app.route('/admin/edit_attendance', methods=['GET', 'POST'])
+@login_required
+def admin_edit_attendance():
+    if current_user.id != 1:
+        return "Access denied"
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    
+    c.execute("SELECT id, full_name FROM users WHERE role = 'employee'")
+    employees = c.fetchall()
+    
+    if request.method == 'POST':
+        user_id = request.form['user_id']
+        date = request.form['date']
+        check_type = request.form['check_type']
+        time = request.form['time']
+        photo = request.files.get('photo')
+        reason = request.form.get('reason', '')
+        
+        timestamp = f"{date} {time}"
+        photo_path = ''
+        if photo:
+            photo_path = f'static/photos/{user_id}_{timestamp.replace(":", "-")}_{photo.filename}'
+            photo.save(photo_path)
+        
+        c.execute("INSERT OR REPLACE INTO time_records (user_id, timestamp, type, photo_path, reason) VALUES (?, ?, ?, ?, ?)",
+                  (user_id, timestamp, check_type, photo_path, reason))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('admin_attendance'))
+    
+    c.execute("SELECT u.full_name, t.timestamp, t.type, t.photo_path, t.reason FROM users u JOIN time_records t ON u.id = t.user_id")
+    records = c.fetchall()
+    conn.close()
+    return render_template('admin_edit_attendance.html', employees=employees, records=records)
 
 @app.route('/admin/export', methods=['POST'])
 @login_required
@@ -474,6 +728,8 @@ def delete_employee(user_id):
     c = conn.cursor()
     c.execute("DELETE FROM users WHERE id = ?", (user_id,))
     c.execute("DELETE FROM time_records WHERE user_id = ?", (user_id,))
+    c.execute("DELETE FROM leave_requests WHERE user_id = ?", (user_id,))
+    c.execute("DELETE FROM work_reports WHERE user_id = ?", (user_id,))
     conn.commit()
     conn.close()
     return redirect(url_for('admin_employees'))

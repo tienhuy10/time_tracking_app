@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo Cáo Công Việc</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="{{ url_for('employee_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('employee_dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('checkin') }}">Chấm Công</a>
+                <a href="{{ url_for('leave_request') }}">Xin Nghỉ Phép</a>
+                <a href="{{ url_for('logout') }}">Đăng Xuất</a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="section">
+            <h1>Báo Cáo Công Việc</h1>
+            <form method="POST" class="form" enctype="multipart/form-data">
+                <label>Nội Dung:</label>
+                <textarea name="content" placeholder="Nhập nội dung báo cáo" required></textarea>
+                <label>Đính Kèm (Nếu Có):</label>
+                <input type="file" name="attachment">
+                <button type="submit">Gửi Báo Cáo</button>
+            </form>
+        </div>
+        <div class="section">
+            <h2>Danh Sách Báo Cáo</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ngày Gửi</th>
+                        <th>Nội Dung</th>
+                        <th>Đính Kèm</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td>{{ report[0] }}</td>
+                        <td>{{ report[1] }}</td>
+                        <td>{% if report[2] %}<a href="{{ url_for('static', filename=report[2][7:]) }}" target="_blank" class="attachment">Xem</a>{% else %}Không có{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>

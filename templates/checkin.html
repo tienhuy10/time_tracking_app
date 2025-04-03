@@ -1,41 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <title>Chấm công</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chấm Công</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .status { font-size: 1.2em; color: #555; text-align: center; margin-bottom: 20px; }
+        .success { color: #10b981; font-weight: 600; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Chấm công</h1>
-        <form method="POST" id="checkinForm" class="form">
-            <label>Loại chấm công hiện tại:</label>
-            <p>
-                {% if next_checkin_type == 'in_morning' %}
-                Vào buổi sáng
-                {% elif next_checkin_type == 'out_morning' %}
-                Ra buổi sáng
-                {% elif next_checkin_type == 'in_afternoon' %}
-                Vào buổi chiều
-                {% elif next_checkin_type == 'out_afternoon' %}
-                Ra buổi chiều
-                {% else %}
-                Bạn đã chấm công đủ hôm nay!
-                {% endif %}
-            </p>
-            {% if next_checkin_type %}
-            <label>Lý do đi muộn (nếu có):</label>
-            <textarea name="reason" rows="3"></textarea>
-            <input type="hidden" name="photo" id="photoInput">
-            <div class="button-group">
-                <button type="button" onclick="capturePhoto()">Chụp ảnh</button>
-                <button type="submit">Xác nhận</button>
+    <header>
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="{{ url_for('employee_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a>
             </div>
+            <div class="nav-links">
+                <a href="{{ url_for('employee_dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('leave_request') }}">Xin Nghỉ Phép</a>
+                <a href="{{ url_for('work_report') }}">Báo Cáo Công Việc</a>
+                <a href="{{ url_for('logout') }}">Đăng Xuất</a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="section">
+            <h1>Chấm Công</h1>
+            <div class="status">{{ status_message }}</div>
+            <div id="photo-success" class="status success" style="display: none;">Chụp ảnh thành công!</div>
+            {% if check_type %}
+            <form method="POST" class="form checkin-container">
+                <video id="video" autoplay></video>
+                <canvas id="canvas"></canvas>
+                <input type="hidden" name="photo" id="photo">
+                <label>Lý Do (Nếu Có):</label>
+                <textarea name="reason" placeholder="Nhập lý do (nếu cần)"></textarea>
+                <button type="button" onclick="capturePhoto()">Chụp Ảnh</button>
+                <button type="submit">Xác Nhận</button>
+            </form>
+            <script>
+                const video = document.getElementById('video');
+                const canvas = document.getElementById('canvas');
+                const photo = document.getElementById('photo');
+                const successMsg = document.getElementById('photo-success');
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => video.srcObject = stream)
+                    .catch(err => console.error("Error accessing camera: ", err));
+                function capturePhoto() {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0);
+                    photo.value = canvas.toDataURL('image/jpeg');
+                    successMsg.style.display = 'block';
+                    setTimeout(() => successMsg.style.display = 'none', 3000); // Ẩn sau 3 giây
+                }
+            </script>
             {% endif %}
-        </form>
-        <video id="video" width="640" height="480" autoplay></video>
-        <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
-        <a href="{{ url_for('employee_dashboard') }}" class="back-link">Quay lại</a>
-    </div>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+        </div>
+    </main>
 </body>
 </html>

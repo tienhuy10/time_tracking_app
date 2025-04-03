@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Báo cáo chấm công</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid black; padding: 8px; text-align: center; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Báo cáo chấm công - {{ selected_month }}</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Họ tên</th>
+                <th>Ngày tháng năm</th>
+                <th>Loại chấm công</th>
+                <th>Thời gian</th>
+                <th>Lý do</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            {% if record[1] %}
+            <tr>
+                <td>{{ record[0] }}</td>
+                <td>{{ record[1].split(' ')[0] }}</td>
+                <td>{{ record[2] }}</td>
+                <td>{{ record[1].split(' ')[1] }}</td>
+                <td>{{ record[3] or '' }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
