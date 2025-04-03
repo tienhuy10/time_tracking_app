@@ -1,6 +1,6 @@
-flask
-flask-login
-sqlite3
-opencv-python
-openpyxl
-Pillow
+Flask==3.0.3
+Flask-Login==0.6.3
+openpyxl==3.1.2
+Pillow==10.3.0
+gunicorn==22.0.0
+Werkzeug==3.0.3
