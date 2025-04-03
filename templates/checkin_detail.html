@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Chấm Công</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="nav-brand"><a href="{{ url_for('employee_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a></div>
+            <div class="nav-links">
+                <a href="{{ url_for('employee_dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('checkin') }}">Chấm Công</a>
+                <a href="{{ url_for('leave_request') }}">Xin Nghỉ Phép</a>
+                <a href="{{ url_for('work_report') }}">Báo Cáo Công Việc</a>
+                <a href="{{ url_for('logout') }}">Đăng Xuất</a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="section">
+            <h1>Chi Tiết Chấm Công - Ngày {{ date }}</h1>
+            <table>
+                <thead><tr><th>Loại</th><th>Thời Gian</th><th>Ảnh</th><th>Lý Do</th></tr></thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ record[0] }}</td>
+                        <td>{{ record[1] }}</td>
+                        <td>{% if record[2] %}<img src="{{ url_for('static', filename=record[2][7:]) }}" alt="Photo" style="width: 100px;">{% else %}Không có{% endif %}</td>
+                        <td>{{ record[3] or '' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>

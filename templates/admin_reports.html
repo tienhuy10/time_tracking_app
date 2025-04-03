@@ -9,38 +9,52 @@
 <body>
     <header>
         <div class="nav-container">
-            <div class="nav-brand">
-                <a href="{{ url_for('admin_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a>
-            </div>
+            <div class="nav-brand"><a href="{{ url_for('admin_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a></div>
             <div class="nav-links">
                 <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
                 <a href="{{ url_for('admin_employees') }}">Quản Lý Nhân Viên</a>
                 <a href="{{ url_for('admin_attendance') }}">Xem Chấm Công</a>
                 <a href="{{ url_for('admin_leave_requests') }}">Duyệt Đơn Nghỉ</a>
-                <a href="{{ url_for('admin_edit_attendance') }}">Chỉnh Sửa Chấm Công</a>
+                <a href="{{ url_for('data_management') }}">Quản Lý Dữ Liệu</a>
                 <a href="{{ url_for('logout') }}">Đăng Xuất</a>
             </div>
         </div>
     </header>
     <main>
         <div class="section">
-            <h1>Xem Báo Cáo Công Việc</h1>
+            <h1>Danh Sách Báo Cáo Công Việc</h1>
             <table>
                 <thead>
                     <tr>
+                        <th>ID</th>
                         <th>Nhân Viên</th>
                         <th>Ngày Gửi</th>
                         <th>Nội Dung</th>
                         <th>Đính Kèm</th>
+                        <th>Trạng Thái</th>
+                        <th>Phản Hồi</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for report in reports %}
                     <tr>
+                        <td>{{ report[0] }}</td>
                         <td>{{ report[1] }}</td>
                         <td>{{ report[2] }}</td>
                         <td>{{ report[3] }}</td>
-                        <td>{% if report[4] %}<a href="{{ url_for('static', filename=report[4][7:]) }}" target="_blank" class="attachment">Xem</a>{% else %}Không có{% endif %}</td>
+                        <td>{% if report[4] %}<a href="{{ url_for('static', filename=report[4][7:]) }}" target="_blank">Xem</a>{% else %}Không có{% endif %}</td>
+                        <td>{{ report[5] }}</td>
+                        <td>
+                            {% if report[5] == 'Chưa xem' %}
+                            <form method="POST">
+                                <input type="hidden" name="report_id" value="{{ report[0] }}">
+                                <textarea name="feedback" placeholder="Nhập phản hồi" required></textarea>
+                                <button type="submit">Gửi</button>
+                            </form>
+                            {% else %}
+                            {{ report[6] }}
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -9,16 +9,13 @@
 <body>
     <header>
         <div class="nav-container">
-            <div class="nav-brand">
-                <a href="{{ url_for('admin_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a>
-            </div>
+            <div class="nav-brand"><a href="{{ url_for('admin_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a></div>
             <div class="nav-links">
                 <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
                 <a href="{{ url_for('admin_attendance') }}">Xem Chấm Công</a>
                 <a href="{{ url_for('admin_leave_requests') }}">Duyệt Đơn Nghỉ</a>
                 <a href="{{ url_for('admin_reports') }}">Xem Báo Cáo</a>
-                <a href="{{ url_for('admin_edit_attendance') }}">Chỉnh Sửa Chấm Công</a>
-                <a href="{{ url_for('add_employee') }}">Thêm Nhân Viên</a>
+                <a href="{{ url_for('data_management') }}">Quản Lý Dữ Liệu</a>
                 <a href="{{ url_for('logout') }}">Đăng Xuất</a>
             </div>
         </div>
@@ -26,6 +23,14 @@
     <main>
         <div class="section">
             <h1>Quản Lý Nhân Viên</h1>
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <p class="success">{{ message }}</p>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+            <a href="{{ url_for('add_employee') }}" class="button">Thêm Nhân Viên</a>
             <table>
                 <thead>
                     <tr>
@@ -36,6 +41,7 @@
                         <th>Email</th>
                         <th>Vai Trò</th>
                         <th>Hành Động</th>
+                        <th>Đổi Mật Khẩu</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -47,9 +53,16 @@
                         <td>{{ user[3] }}</td>
                         <td>{{ user[4] }}</td>
                         <td>{{ user[5] }}</td>
-                        <td class="action-buttons">
-                            <a href="{{ url_for('edit_employee', user_id=user[0]) }}" class="attachment">Sửa</a>
-                            <a href="{{ url_for('delete_employee', user_id=user[0]) }}" class="attachment" onclick="return confirm('Bạn có chắc chắn muốn xóa?');">Xóa</a>
+                        <td>
+                            <a href="{{ url_for('edit_employee', user_id=user[0]) }}">Sửa</a> |
+                            <a href="{{ url_for('delete_employee', user_id=user[0]) }}" onclick="return confirm('Bạn có chắc chắn muốn xóa?')">Xóa</a>
+                        </td>
+                        <td>
+                            <form method="POST">
+                                <input type="hidden" name="user_id" value="{{ user[0] }}">
+                                <input type="password" name="new_password" placeholder="Mật khẩu mới" required>
+                                <button type="submit" name="change_password">Đổi</button>
+                            </form>
                         </td>
                     </tr>
                     {% endfor %}

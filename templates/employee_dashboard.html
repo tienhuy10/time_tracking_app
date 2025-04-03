@@ -6,16 +6,15 @@
     <title>Dashboard Nhân Viên</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        .filter-form { flex-direction: row; justify-content: center; }
-        @media (max-width: 768px) { .filter-form { flex-direction: column; } }
+        .notifications { margin: 20px 0; }
+        .notification { padding: 10px; background: #e0f7fa; border: 1px solid #00acc1; margin: 5px 0; }
+        .stats { margin: 20px 0; font-size: 1.1em; }
     </style>
 </head>
 <body>
     <header>
         <div class="nav-container">
-            <div class="nav-brand">
-                <a href="{{ url_for('employee_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a>
-            </div>
+            <div class="nav-brand"><a href="{{ url_for('employee_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a></div>
             <div class="nav-links">
                 <a href="{{ url_for('checkin') }}">Chấm Công</a>
                 <a href="{{ url_for('leave_request') }}">Xin Nghỉ Phép</a>
@@ -27,6 +26,16 @@
     <main>
         <div class="section">
             <h1>Dashboard Nhân Viên</h1>
+            <div class="stats">
+                <p>Tổng ngày công tháng {{ selected_month }}: {{ total_work_days }}</p>
+                <p>Tổng ngày nghỉ đã duyệt: {{ total_leave_days }}</p>
+            </div>
+            <div class="notifications">
+                <h3>Thông báo</h3>
+                {% for notif in notifications %}
+                <div class="notification">{{ notif[0] }} ({{ notif[1] }}) {% if not notif[2] %}<span>(Chưa đọc)</span>{% endif %}</div>
+                {% endfor %}
+            </div>
             <form method="POST" class="filter-form">
                 <label>Lọc:</label>
                 <select name="filter_type" onchange="toggleMonthInput(this)">
@@ -46,7 +55,8 @@
                         <th>Ngày</th>
                         <th colspan="2">Buổi Sáng</th>
                         <th colspan="2">Buổi Chiều</th>
-                        <th>Ghi chú</th>
+                        <th>Công</th>
+                        <th>Chi Tiết</th>
                     </tr>
                     <tr>
                         <th></th>
@@ -54,6 +64,7 @@
                         <th>Check-out</th>
                         <th>Check-in</th>
                         <th>Check-out</th>
+                        <th></th>
                         <th></th>
                     </tr>
                 </thead>
@@ -61,31 +72,12 @@
                     {% for date, records in daily_records.items() %}
                     <tr>
                         <td>{{ date }}</td>
-                        <td>
-                            {{ records.in_morning.time or '' }}
-                            {% if records.in_morning.photo %}
-                            <br><img src="{{ url_for('static', filename=records.in_morning.photo[7:]) }}" alt="Photo" class="photo">
-                            {% endif %}
-                        </td>
-                        <td>
-                            {{ records.out_morning.time or '' }}
-                            {% if records.out_morning.photo %}
-                            <br><img src="{{ url_for('static', filename=records.out_morning.photo[7:]) }}" alt="Photo" class="photo">
-                            {% endif %}
-                        </td>
-                        <td>
-                            {{ records.in_afternoon.time or '' }}
-                            {% if records.in_afternoon.photo %}
-                            <br><img src="{{ url_for('static', filename=records.in_afternoon.photo[7:]) }}" alt="Photo" class="photo">
-                            {% endif %}
-                        </td>
-                        <td>
-                            {{ records.out_afternoon.time or '' }}
-                            {% if records.out_afternoon.photo %}
-                            <br><img src="{{ url_for('static', filename=records.out_afternoon.photo[7:]) }}" alt="Photo" class="photo">
-                            {% endif %}
-                        </td>
-                        <td>{% if records.reason %}<span class="reason">{{ records.reason }}</span>{% endif %}</td>
+                        <td>{{ records.in_morning.time or '' }}{% if records.in_morning.photo %}<br><img src="{{ url_for('static', filename=records.in_morning.photo[7:]) }}" alt="Photo" class="photo">{% endif %}</td>
+                        <td>{{ records.out_morning.time or '' }}{% if records.out_morning.photo %}<br><img src="{{ url_for('static', filename=records.out_morning.photo[7:]) }}" alt="Photo" class="photo">{% endif %}</td>
+                        <td>{{ records.in_afternoon.time or '' }}{% if records.in_afternoon.photo %}<br><img src="{{ url_for('static', filename=records.in_afternoon.photo[7:]) }}" alt="Photo" class="photo">{% endif %}</td>
+                        <td>{{ records.out_afternoon.time or '' }}{% if records.out_afternoon.photo %}<br><img src="{{ url_for('static', filename=records.out_afternoon.photo[7:]) }}" alt="Photo" class="photo">{% endif %}</td>
+                        <td>{{ records.work_days }}{% if records.reason %}<span class="reason">{{ records.reason }}</span>{% endif %}</td>
+                        <td><a href="#" onclick="alert('Chi tiết: {{ records.reason  }}');">Xem</a></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -100,6 +92,7 @@
                         <th>Ngày Nghỉ</th>
                         <th>Loại Nghỉ</th>
                         <th>Lý Do</th>
+                        <th>Đính Kèm</th>
                         <th>Trạng Thái</th>
                     </tr>
                 </thead>
@@ -110,7 +103,8 @@
                         <td>{{ req[1] }}</td>
                         <td>{{ req[2] }}</td>
                         <td>{{ req[3] }}</td>
-                        <td class="{% if req[4] == 'Được duyệt' %}approved{% elif req[4] == 'Từ chối' %}rejected{% endif %}">{{ req[4] }}</td>
+                        <td>{% if req[5] %}<a href="{{ url_for('static', filename=req[5][7:]) }}" target="_blank">Xem</a>{% else %}Không có{% endif %}</td>
+                        <td class="{% if req[4] == 'Đã duyệt' %}approved{% elif req[4] == 'Bị từ chối' %}rejected{% endif %}">{{ req[4] }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -124,6 +118,8 @@
                         <th>Ngày Gửi</th>
                         <th>Nội Dung</th>
                         <th>Đính Kèm</th>
+                        <th>Trạng Thái</th>
+                        <th>Phản Hồi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -131,7 +127,9 @@
                     <tr>
                         <td>{{ report[0] }}</td>
                         <td>{{ report[1] }}</td>
-                        <td>{% if report[2] %}<a href="{{ url_for('static', filename=report[2][7:]) }}" target="_blank" class="attachment">Xem</a>{% else %}Không có{% endif %}</td>
+                        <td>{% if report[2] %}<a href="{{ url_for('static', filename=report[2][7:]) }}" target="_blank">Xem</a>{% else %}Không có{% endif %}</td>
+                        <td>{{ report[3] }}</td>
+                        <td>{{ report[4] or 'Chưa có' }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

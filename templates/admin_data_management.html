@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Dữ Liệu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="nav-brand"><a href="{{ url_for('admin_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a></div>
+            <div class="nav-links">
+                <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('admin_employees') }}">Quản Lý Nhân Viên</a>
+                <a href="{{ url_for('admin_attendance') }}">Xem Chấm Công</a>
+                <a href="{{ url_for('admin_leave_requests') }}">Duyệt Đơn Nghỉ</a>
+                <a href="{{ url_for('admin_reports') }}">Xem Báo Cáo</a>
+                <a href="{{ url_for('logout') }}">Đăng Xuất</a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="section">
+            <h1>Quản Lý Dữ Liệu</h1>
+            <p>Trạng thái dung lượng: {{ storage_status }}</p>
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <p class="success">{{ message }}</p>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+            <form method="POST">
+                <button type="submit">Xóa Đã Chọn</button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" onclick="toggleAll(this)"></th>
+                            <th>ID</th>
+                            <th>User ID</th>
+                            <th>Thời Gian</th>
+                            <th>Loại</th>
+                            <th>Ảnh</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td><input type="checkbox" name="selected_records" value="{{ record[0] }}"></td>
+                            <td>{{ record[0] }}</td>
+                            <td>{{ record[1] }}</td>
+                            <td>{{ record[2] }}</td>
+                            <td>{{ record[3] }}</td>
+                            <td>{% if record[4] %}<img src="{{ url_for('static', filename=record[4][7:]) }}" alt="Photo" class="photo">{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </main>
+    <script>
+        function toggleAll(source) {
+            checkboxes = document.getElementsByName('selected_records');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = source.checked;
+            }
+        }
+    </script>
+</body>
+</html>

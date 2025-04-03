@@ -1,0 +1,41 @@
+1. Biến là gì? Lưu trữ giá trị, chuỗi, văn bản,....
+2. Quy tắc đặt tên biến
+- có yý nghĩa
+- tiếng anh
+- không bắt đầu chữ số
+- Chứa các chữ cái, chỗ số, dấu gạch chân
+- phân biệt chữ hoa và chữ thường
+- không trùng với từ khóa
+- không chứa ký tự đặc biệt
+3. Các bước hiển thị cửa sổ 1 ứng dụng
+- câu lệnh thêm thư viện: import tkinter as tk
+=> as tk: đặt tên thư viện là "tk" cho ngắn
+- Câu lệnh tạo cửa sổ: app = tk.Tk()
+- câu lệnh tạo tiêu đề: app.title("tên tiêu đề")
+- câu lệnh thiết lập kích thước: (chiều rộng x chiều dài)
+app.geometry("500x300")
+- HIener thị cửa sổ: app.mainloop()
+
+
+
+Đối tượng Label
+- Tên cửa sổ
+- text: nội dung văn bản
+- font=("Arial", 16): kiểu chữ, kích thước chữ
+- fg: màu chữ
+- bg: màu nền
+- wraplength=400 :độ dài văn bản, xuống dòng
+- justify="left" : xuống dòng bên trái
+.pack() :hiển thị đối tượng
+pady: khoảng cách giữa đối tượng trên và dưới
+padx: khoảng cách giữa đối tượng trái và phải
+
+ví dụ: 
+
+label_vitri = tk.Label(app, text= "text_vitri", font=("Arial", 16), wraplength=400, justify="left")
+label_vitri.pack(pady=1)
+
+
+
+
+

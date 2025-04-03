@@ -9,9 +9,7 @@
 <body>
     <header>
         <div class="nav-container">
-            <div class="nav-brand">
-                <a href="{{ url_for('employee_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a>
-            </div>
+            <div class="nav-brand"><a href="{{ url_for('employee_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a></div>
             <div class="nav-links">
                 <a href="{{ url_for('employee_dashboard') }}">Dashboard</a>
                 <a href="{{ url_for('checkin') }}">Chấm Công</a>
@@ -23,22 +21,24 @@
     <main>
         <div class="section">
             <h1>Xin Nghỉ Phép</h1>
-            <form method="POST" class="form">
+            <form method="POST" enctype="multipart/form-data" class="form">
                 <label>Ngày Nghỉ:</label>
                 <input type="date" name="leave_date" required>
                 <label>Loại Nghỉ:</label>
                 <select name="leave_type" required>
-                    <option value="Sáng">Buổi Sáng</option>
-                    <option value="Chiều">Buổi Chiều</option>
-                    <option value="Cả ngày">Cả Ngày</option>
+                    <option value="Sáng">Sáng</option>
+                    <option value="Chiều">Chiều</option>
+                    <option value="Cả ngày">Cả ngày</option>
                 </select>
                 <label>Lý Do:</label>
-                <textarea name="reason" placeholder="Nhập lý do xin nghỉ" required></textarea>
+                <textarea name="reason" placeholder="Nhập lý do" required></textarea>
+                <label>Đính Kèm (Tùy Chọn):</label>
+                <input type="file" name="attachment">
                 <button type="submit">Gửi Đơn</button>
             </form>
         </div>
         <div class="section">
-            <h2>Danh Sách Đơn Xin Nghỉ</h2>
+            <h2>Danh Sách Đơn Đã Gửi</h2>
             <table>
                 <thead>
                     <tr>
@@ -46,6 +46,7 @@
                         <th>Ngày Nghỉ</th>
                         <th>Loại Nghỉ</th>
                         <th>Lý Do</th>
+                        <th>Đính Kèm</th>
                         <th>Trạng Thái</th>
                     </tr>
                 </thead>
@@ -56,7 +57,8 @@
                         <td>{{ req[1] }}</td>
                         <td>{{ req[2] }}</td>
                         <td>{{ req[3] }}</td>
-                        <td>{{ req[4] }}</td>
+                        <td>{% if req[5] %}<a href="{{ url_for('static', filename=req[5][7:]) }}" target="_blank">Xem</a>{% else %}Không có{% endif %}</td>
+                        <td class="{% if req[4] == 'Đã duyệt' %}approved{% elif req[4] == 'Bị từ chối' %}rejected{% endif %}">{{ req[4] }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

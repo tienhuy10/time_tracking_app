@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Nhân Viên</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="nav-brand"><a href="{{ url_for('admin_dashboard') }}">HỆ THỐNG CHẤM CÔNG</a></div>
+            <div class="nav-links">
+                <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('admin_employees') }}">Quản Lý Nhân Viên</a>
+                <a href="{{ url_for('admin_attendance') }}">Xem Chấm Công</a>
+                <a href="{{ url_for('admin_leave_requests') }}">Duyệt Đơn Nghỉ</a>
+                <a href="{{ url_for('admin_reports') }}">Xem Báo Cáo</a>
+                <a href="{{ url_for('admin_edit_attendance') }}">Chỉnh Sửa Chấm Công</a>
+                <a href="{{ url_for('admin_data_management') }}">Quản Lý Dữ Liệu</a>
+                <a href="{{ url_for('logout') }}">Đăng Xuất</a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="section">
+            <h1>Chi Tiết Chấm Công - {{ full_name }}</h1>
+            <table>
+                <thead><tr><th>Ngày</th><th>Vào Sáng</th><th>Ra Sáng</th><th>Vào Chiều</th><th>Ra Chiều</th><th>Ảnh</th><th>Lý Do</th></tr></thead>
+                <tbody>
+                    {% for date, records in daily_records.items() %}
+                    <tr>
+                        <td>{{ date }}</td>
+                        <td>{{ records.in_morning or '' }}</td>
+                        <td>{{ records.out_morning or '' }}</td>
+                        <td>{{ records.in_afternoon or '' }}</td>
+                        <td>{{ records.out_afternoon or '' }}</td>
+                        <td>{% if records.photo %}<img src="{{ url_for('static', filename=records.photo[7:]) }}" alt="Photo" class="photo">{% else %}Không có{% endif %}</td>
+                        <td>{{ records.reason or '' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>
